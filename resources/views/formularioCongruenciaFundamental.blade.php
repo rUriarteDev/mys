@@ -41,11 +41,28 @@
                 <form action="{{route('calcularCongruenciaFundamental')}}" method="post" enctype="multipart/form-data">
                     <div class="form-group">
                         <label for="cantidad">Cantidad de numeros a calcular (incluyendo las semillas)</label>
-                        <input type="number" class="form-control" name="cantidad" id="cantidad" placeholder="Ingrese una cantidad">
+                        <input type="number" class="form-control" name="cantidad" id="cantidad"
+                            placeholder="Ingrese la cantidad de numeros que desea calcular">
+                    </div>
+                    <div class="form-group">
+                        <label for="cantidad">Valor de la variable "a"</label>
+                        <input type="number" class="form-control" name="a" id="a"
+                            placeholder="Ingrese un entero >= 0">
+                    </div>
+                    <div class="form-group">
+                        <label for="cantidad">Valor de la variable "c"</label>
+                        <input type="number" class="form-control" name="c" id="c"
+                            placeholder="Ingrese un entero >= 0">
+                    </div>
+                    <div class="form-group">
+                        <label for="cantidad">Valor de la variable "m"</label>
+                        <input type="number" class="form-control" name="m" id="m"
+                            placeholder="Ingrese el mayor entero primo, que sea menor a 127 (113)">
                     </div>
                     <div class="form-group">
                         <label for="semillas">Semillas</label>
-                        <input type="text" class="form-control" id="semillas" name="semillas" placeholder="Ingrese las semillas separadas por una coma">
+                        <input type="text" class="form-control" id="semillas" name="semillas"
+                            placeholder="Ingrese las semillas separadas por una coma (p.ej: 45,89,74)" pattern="[0-9 _,]*">
                     </div>
                     @csrf
                     <div align="right">
@@ -53,7 +70,7 @@
                     </div>
                 </form>
             </div>
-            <div class="card-footer"> <strong>AYUDA</strong>  <br>     
+            <div class="card-footer"> <strong>AYUDA</strong> <br>
                 V[i+1] = ((a * V[i] + c * V[i-k]) mod m) <br>
                 a = multiplicador (a>=0) <br>
                 c = constante aditiva (c>=0) <br>
@@ -66,8 +83,7 @@
 
     <!-- Optional JavaScript -->
     <!-- jQuery first, then Popper.js, then Bootstrap JS -->
-    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"
-        integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js">
     </script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"
         integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous">

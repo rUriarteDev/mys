@@ -14,30 +14,34 @@ class CongruenciaFundamental extends Controller
 
     public function calcular(Request $request)
     {
-        $cantidad = $request->cantidad;
-        $semillas = $request->semillas;
-        $semillas= explode(',',$semillas);
+        //VALORES PARA PRUEBA
         //$cantidad=1000;
-        $a=3;
-        $c=5;
-        $m=127;
         //$v0=1234;
         //$v1=5678;
         //$v2=9012;
+        //$a=3;
+        //$c=5;
+        //$m=127;
+
+        //VALORES DEL FORMULARIO
+        $cantidad = $request->cantidad;
+        $a = $request->a;
+        $c = $request->c;
+        $m = $request->m;
+        $semillas = $request->semillas;
+        
+        $semillas= explode(',',$semillas);
         $k=count($semillas);
+
         $v=collect();
         foreach ($semillas as $semilla) {
             $v->push($semilla);
         }
-        //$v->push($v0,$v1,$v2);
         for ($i=$k; $cantidad+$k != $v->count(); $i++) { 
-            //$aux=$v->get($i);
-            //$aux2=$v->get($i-$k);
             $vi= ($a * $v->get($i) + $c * $v->get($i-$k)) % $m;
             $v->push($vi);
         }
-
-
+        $v=$v->splice($k);
         dd($v);
 
     }
