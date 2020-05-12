@@ -8,7 +8,7 @@
             Congruencia Fundamental
         </div>
         <div class="card-body">
-            <form action="{{route('calcularCF')}}" method="post" enctype="multipart/form-data">
+            <form action="{{route('formularioResultados')}}" method="post" enctype="multipart/form-data">
                 <div class="form-group">
                     <label for="cantidad">Cantidad de numeros a calcular (incluyendo las semillas)</label>
                     <input type="number" class="form-control" name="cantidad" id="cantidad"

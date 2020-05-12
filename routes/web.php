@@ -17,4 +17,4 @@ Route::get('/', function () {
     return view('welcome');
 });
 Route::get('/congruencia/fundamental', 'CongruenciaFundamental@formularioCargaCF')->name('formularioCargaCF');
-Route::post('/congruencia/fundamental/calcular', 'CongruenciaFundamental@calcularCF')->name('calcularCF');
+Route::post('/congruencia/fundamental/calcular', 'CongruenciaFundamental@formularioResultados')->name('formularioResultados');

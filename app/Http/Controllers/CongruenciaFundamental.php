@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
+use App\Charts\UserChart;
+
 
 class CongruenciaFundamental extends Controller
 {
@@ -50,7 +52,7 @@ class CongruenciaFundamental extends Controller
         }
         $v = $v->splice($k);
 
-        return $this->testAleatoriedad($v, $cantidad, $m);
+        return array($v, $cantidad, $m);
     }
 
     public function testAleatoriedad(Collection $aleatorios, $cantidad,  $m)
@@ -71,27 +73,35 @@ class CongruenciaFundamental extends Controller
             function ($item) {
                 return $item;
             },
-        ], $preserveKeys = true)->toArray();
+        ], $preserveKeys = true)
+        ->map(function ($item) {
+            // Return the number of persons with that age
+            return count($item);
+        });
 
         $chi2 = collect();
         foreach ($fobs as $key => $value) {
-            $aux = pow((count($value) - $fesp), 2) / $fesp;
+            $aux = pow(($value - $fesp), 2) / $fesp;
             $chi2[$key] = $aux;
         }
-        return $this->formularioResultados($aleatorios, $chi2);
-        //dd($fobs,$chi2,$chi2->sum());
+        return array($fobs,$chi2);
     }
 
-    public function formularioResultados(Collection $aleatorios, $chi2)
-    {
-        // $this->calcularCF($request);
-        // $this->testAleatoriedad();
+    public function formularioResultados(Request $request)
+    {      
+        list($aleatorios, $cantidad, $m) = $this->calcularCF($request);
+        list($fobs,$chi2) = $this->testAleatoriedad($aleatorios, $cantidad, $m);
+
+        $resultados = new UserChart;
+        $resultados->labels($fobs->keys());
+        $resultados->dataset('Frecuencia observada', 'bar', $fobs->values() )->color('black');
+
         return view(
             'resultadoAleatorioTest',
             [
                 'aleatorios' => $aleatorios,
                 'chi2' => $chi2->sum(),
-                'chi2G' => $chi2
+                'resultados' => $resultados
             ]
         );
     }

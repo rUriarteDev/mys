@@ -17,5 +17,4 @@ Route::group([
     //Route::get('/congruencia/fundamental', 'CongruenciaFundamental@formularioCargaCF')->name('formularioCargaCF');
     //Route::post('/congruencia/fundamental/calcular', 'CongruenciaFundamental@calcularCF')->name('calcularCF');
     // custom admin routes
-    Route::get('charts/grafico-resultado', 'Charts\GraficoResultadoChartController@response');
 }); // this should be the absolute last line of this file
