@@ -5,7 +5,10 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use App\Charts\UserChart;
-
+use Illuminate\Support\Facades\Redirect;
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\ValidationException;
+use Prologue\Alerts\Facades\Alert;
 
 class CongruenciaFundamental extends Controller
 {
@@ -43,19 +46,28 @@ class CongruenciaFundamental extends Controller
         $k = count($semillas);
 
         $v = collect();
+        //ingreso las semillas a la coleccion para comenzar a calcular los valores
         foreach ($semillas as $semilla) {
             $v->push($semilla);
         }
+        //genero la cantidad de numeros aleatorios solicitados a partir de las semillas
         for ($i = $k; $cantidad + $k != $v->count(); $i++) {
             $vi = ($a * $v->get($i) + $c * $v->get($i - $k)) % $m;
             $v->push($vi);
         }
+        //saco los valores de las semillas ingresadas, de la coleccion final
         $v = $v->splice($k);
 
-        return array($v, $cantidad, $m);
+        //a los numeros generados (entre 0 y m) los convierto a un rango(0 a 1)
+        $aleatorios01 = collect();
+        foreach ($v as $vi) {
+            $vi = $vi / $m;
+            $aleatorios01->push(number_format((float) $vi, 3, '.', ','));
+        }
+        return array($aleatorios01, $cantidad, $m);
     }
 
-    public function testAleatoriedad(Collection $aleatorios, $cantidad,  $m)
+    public function testAleatoriedad(Collection $aleatorios01, $cantidad,  $m)
     {
         //ECUACIONES A USAR
         //n=cantidad numeros generados
@@ -69,39 +81,167 @@ class CongruenciaFundamental extends Controller
         $gl = $k - 1;
         $fesp = $n / $k;
 
-        $fobs = $aleatorios->groupBy([
+        //calculo la frecuencia observada de cada numero aleatorio
+        $fobsNA = $aleatorios01->groupBy([
             function ($item) {
                 return $item;
             },
         ], $preserveKeys = true)
-        ->map(function ($item) {
-            // Return the number of persons with that age
-            return count($item);
-        });
+            ->map(function ($item) {
+                return count($item);
+            });
 
+        //calculo el valor de chi2 para mi cada uno de mis numeros aleatorios
         $chi2 = collect();
-        foreach ($fobs as $key => $value) {
+        foreach ($fobsNA as $key => $value) {
             $aux = pow(($value - $fesp), 2) / $fesp;
             $chi2[$key] = $aux;
         }
-        return array($fobs,$chi2);
+        //calculo el valor de chi2 para toda mi coleccion de numeros aleatorios
+        $chi2 = $chi2->sum();
+
+        //ordeno la coleccion de frecuencias observadas de numeros aleatorios, de menor a mayor para pasar al grafico
+        $fobsNA = $fobsNA->sortBy(function ($item, $key) {
+            return $key;
+        });
+
+        return array($fobsNA, $chi2);
+    }
+
+    public function calcularClases(Request $request, Collection $aleatorios01)
+    {
+        $minimo = floatval($request->minimo);
+        $maximo = floatval($request->maximo);
+        $etiquetas = collect($request->etiqueta);
+        $probabilidades = collect($request->probabilidad);
+
+        //los valores posibles segun el maximo y minimo indicado por el experto
+        $valoresposibles = $maximo - $minimo;
+
+        //calculo cuanto es el tamaño de cada rango segun su probabilidad y valores posibles
+        $rangos = collect();
+        foreach ($probabilidades as $probabilidad) {
+            $aux1 = $probabilidad * $valoresposibles;
+            $rangos->push($aux1);
+        }
+
+        $rangomin = collect();
+        $rangomax = collect();
+        //pongo como primer valor del primer rango minimo el valor indicado por el experto
+        $rangomin->push($minimo);
+        //calculo los minimos y maximos de cada una de las marcas de clases.
+        foreach ($rangos as $rango) {
+            if (count($rangomin) == 1) {
+                $aux2 = $rangomin->last() + $rango;
+                $aux3 = $rangomin->last() + $rango;
+            } else {
+                $aux2 = $rangomin->last() + $rango;
+                $aux3 = $rangomin->last() + $rango;
+            }
+            $rangomax->push($aux3);
+            $rangomin->push($aux2);
+        }
+        //saco el ultimo valor de rangomin ya que el primero lo puse por defecto
+        $rangomin->pop();
+
+
+        $marcasClase = collect();
+        //creo una coleccion con la etiqueta de la marca de clase, la probabilidad de ocurrencia cargada
+        // su valor minimo y maximo de rango calculado y su frecuencia esperada
+        for ($i = 0; $i < count($etiquetas); $i++) {
+            $aux4 = collect();
+            $aux4->put('etiqueta', $etiquetas->get($i));
+            $aux4->put('probabilidad', $probabilidades->get($i));
+            $aux4->put('min', $rangomin->get($i));
+            $aux4->put('max', $rangomax->get($i));
+            $aux4->put('fespMC', $aleatorios01->count()*(floatval($probabilidades->get($i))));
+            $marcasClase->push($aux4);
+        }
+
+        //transformo los aleatorios en rango 0-1 a un rango 0-100
+        //numeroAjustado = valorInferior + abs( [ numeroOriginal * cantidadValoresRango ] )
+        $numerosAjustados0100 = collect();
+        foreach ($aleatorios01 as $aleatorio01) {
+            $aux5 = 0 + abs((floatval($aleatorio01) * 100));
+            $numerosAjustados0100->push($aux5);
+        }
+
+        //transformo el numero ajustado (0-100) a una variable aleatoria dentro del rango de mi dominio($minimo-$maximo)
+        $varAleatorias = collect();
+        foreach ($numerosAjustados0100 as $numeroAjustado0100) {
+            $aux6 = ($numeroAjustado0100 / 100 * ($maximo - $minimo)) + $minimo;
+            $varAleatorias->push($aux6);
+        }
+
+        //la variables aleatorias obtenidas las clasifico en las marcas de clases segun los rangos.
+        $marcasVA = collect();
+        $varAleatorias->map(function ($va) use ($marcasClase, $marcasVA) {
+            foreach ($marcasClase as $marca) {
+                if (($marca->get('min') <= $va) and ($va < $marca->get('max'))) {
+                    $marcasVA->push($marca->get('etiqueta'));
+                    break;
+                }
+            }
+        });
+
+        //agrupo la clasificacion obtenida y cuento las frecuencias observadas de cada marca de clase
+        $fobsMC = $marcasVA->groupBy(function ($item, $key) {
+            return ($item);
+        })->map(function ($item) {
+            return count($item);
+        });
+
+        //a la coleccion de marcas de clase le agrego la frecuencia observada
+        $marcasClase->map(function ($mc) use ($fobsMC) {
+            foreach ($fobsMC as $key => $value) {
+                if ($key == $mc->get('etiqueta')) {
+                    $mc->put('fobsMC', $value);
+                    break;
+                }
+            }
+        });
+        return array($marcasClase, $numerosAjustados0100, $varAleatorias, $marcasVA);
     }
 
     public function formularioResultados(Request $request)
-    {      
-        list($aleatorios, $cantidad, $m) = $this->calcularCF($request);
-        list($fobs,$chi2) = $this->testAleatoriedad($aleatorios, $cantidad, $m);
+    {
+        $probabilidad = $request->probabilidad;
 
-        $resultados = new UserChart;
-        $resultados->labels($fobs->keys());
-        $resultados->dataset('Frecuencia observada', 'bar', $fobs->values() )->color('black');
+        if ($probabilidad == null) {
+            Alert::error('Debe ingresar al menos una marca de clase')->flash();
+            return Redirect::back()->withInput($request->input());
+        }
+        $aux=array_sum($probabilidad);
+        if ($aux != 1) {
+            Alert::error('La suma de las probabilidades debe ser igual a 1 o 100%')->flash();
+            return Redirect::back()->withInput($request->input());
+        }
+
+        list($aleatorios01, $cantidad, $m) = $this->calcularCF($request);
+        list($fobsNA, $chi2) = $this->testAleatoriedad($aleatorios01, $cantidad, $m);
+        list($marcasClase, $numerosAjustados0100, $varAleatorias, $marcasVA) = 
+            $this->calcularClases($request, $aleatorios01);
+
+        $graficoFobsNA = new UserChart;
+        $graficoFobsNA->labels($fobsNA->keys());
+        $graficoFobsNA->dataset('Frecuencia observada', 'bar', $fobsNA->values())->color('black');
+
+        $graficoMC = new UserChart;
+        $graficoMC->labels($marcasClase->pluck('etiqueta'));
+        $graficoMC->dataset('Frecuencia esperada MC', 'line', $marcasClase->pluck('fespMC'))->color('black');
+        $graficoMC->dataset('Frecuencia observada MC', 'line', $marcasClase->pluck('fobsMC'))->color('red');
 
         return view(
             'resultadoAleatorioTest',
             [
-                'aleatorios' => $aleatorios,
-                'chi2' => $chi2->sum(),
-                'resultados' => $resultados
+                'aleatorios01' => $aleatorios01,
+                'chi2' => $chi2,
+                'graficoFobsNA' => $graficoFobsNA,
+                'graficoMC' => $graficoMC,
+                'marcasClase' => $marcasClase,
+                'numerosAjustados0100' => $numerosAjustados0100,
+                'varAleatorias' => $varAleatorias,
+                'marcasVA' => $marcasVA
             ]
         );
     }

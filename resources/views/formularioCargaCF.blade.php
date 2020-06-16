@@ -1,51 +1,182 @@
-@extends(backpack_view('blank'))
+@extends('layout.mainlayout')
 
 @section('content')
 
+@foreach (Alert::getMessages() as $type => $messages)
+@foreach ($messages as $message)
+<div class="alert alert-{{ $type }}">{{ $message }}</div>
+@endforeach
+@endforeach
+
 <body>
-    <div class="card border-primary mb-3 mx-auto" style="width: 65%">
-        <div class="card-header">
-            Congruencia Fundamental
+    <form action="{{route('formularioResultados')}}" method="post" enctype="multipart/form-data">
+        @csrf
+
+        <div class="card border-primary mb-3 mx-auto" style="width: 65%">
+
+            <div class="card-header">
+                <button class="btn btn-primary" type="button" data-toggle="collapse" data-target="#collapseMarcas"
+                    aria-expanded="false" aria-controls="collapseMarcas">
+                    MARCAS DE CLASE
+                </button>
+            </div>
+
+            <div class="collapse" id="collapseMarcas">
+                <div class="card-body">
+                    <div class="container">
+                        <div class="row">
+                            <div class="col-sm">
+                                <label for="minimo">Valor minimo para el calculo de marcas de clases.<span
+                                        style="color: red">*</span></label>
+                                <input type="number" class="form-control" id="minimo" name="minimo" step="0.1"
+                                    placeholder="Ingrese el valor minimo para el calculo de marcas de clases."
+                                    value="{{old('minimo')}}">
+                            </div>
+                            <div class="col-sm">
+                                <label for="maximo">Valor maximo para el calculo de marcas de clases.<span
+                                        style="color: red">*</span></label>
+                                <input type="number" class="form-control" id="maximo" name="maximo" step="0.1"
+                                    placeholder="Ingrese el valor maximo para el calculo de marcas de clases."
+                                    value="{{old('maximo')}}">
+                            </div>
+                        </div>
+                    </div>
+                    <br>
+                    <div class="table-responsive">
+                        <table class="table" id="marcas_table">
+                            <thead>
+                                <tr>
+                                    <th>Etiqueta <span style="color: red">*</span></th>
+                                    <th>Probabilidad <span style="color: red">*</span></th>
+                                    <th>Accion</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @if (old('etiqueta'))
+                                @for( $i=0; $i < count(old('etiqueta')); $i++) <tr>
+                                    <td>
+                                        <input type="text" name="etiqueta[]" class="form-control" required
+                                            placeholder="Ingrese una etiqueta" value="{{old('etiqueta.'.$i)}}">
+                                    </td>
+                                    <td>
+                                        <input type="number" step="0.0001" min="0.0001" max="1" name="probabilidad[]"
+                                            class="form-control" required placeholder="Ingrese el valor de probabilidad"
+                                            value="{{old('probabilidad.'.$i)}}">
+                                    </td>
+                                    <td><button class="delete_row pull-right btn btn-danger"><i
+                                                class="la la-remove"></i></button></td>
+                                    </tr>
+                                    @endfor
+                                    @endif
+                            </tbody>
+                        </table>
+                    </div>
+                    <br>
+                    <div class="row">
+                        <div class="col-sm">
+                            <button id="add_row" class="float-sm-left btn btn-default ">+ Agregar Marca Clase</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
         </div>
-        <div class="card-body">
-            <form action="{{route('formularioResultados')}}" method="post" enctype="multipart/form-data">
-                <div class="form-group">
-                    <label for="cantidad">Cantidad de numeros a calcular (incluyendo las semillas)</label>
-                    <input type="number" class="form-control" name="cantidad" id="cantidad"
-                        placeholder="Ingrese la cantidad de numeros que desea calcular">
+
+        <div class="card border-primary mb-3 mx-auto" style="width: 65%">
+
+            <div class="card-header">
+                <button class="btn btn-primary" type="button" data-toggle="collapse" data-target="#collapseCF"
+                    aria-expanded="false" aria-controls="collapseCF">
+                    CONGRUENCIA FUNDAMENTAL
+                </button>
+            </div>
+            <div class="collapse" id="collapseCF">
+                <div class="card-body">
+                    <div class="container">
+                        <div class="row">
+                            <div class="col-sm">
+                                <label for="cantidad">Cantidad de numeros a calcular.<span
+                                        style="color: red">*</span></label>
+                                <input type="number" class="form-control" name="cantidad" id="cantidad"
+                                    placeholder="Ingrese la cantidad de numeros que desea calcular"
+                                    value="{{old('cantidad')}}" required>
+                            </div>
+                            <div class="col-sm">
+                                <label for="a">Valor de la variable "a".<span style="color: red">*</span></label>
+                                <input type="number" class="form-control" name="a" id="a"
+                                    placeholder="Ingrese un entero >= 0" value="{{old('a')}}" required>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-sm">
+                                <label for="c">Valor de la variable "c".<span style="color: red">*</span></label>
+                                <input type="number" class="form-control" name="c" id="c"
+                                    placeholder="Ingrese un entero >= 0" value="{{old('c')}}" required>
+                            </div>
+                            <div class="col-sm">
+                                <label for="m">Valor de la variable "m".<span style="color: red">*</span></label>
+                                <input type="number" class="form-control" name="m" id="m"
+                                    placeholder="Ingrese el mayor entero primo, que sea menor a 127 (113)"
+                                    value="{{old('m')}}" required>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-sm">
+                                <label for="semillas">Semillas.<span style="color: red">*</span></label>
+                                <input type="text" class="form-control" id="semillas" name="semillas"
+                                    placeholder="Ingrese las semillas separadas por una coma (p.ej: 45,89,74)"
+                                    pattern="[0-9 _,]*" value="{{old('semillas')}}" required>
+                            </div>
+                        </div>
+                    </div>
+                    <br>
+                    <div class="row">
+                        <div class="col-sm">
+                            <button type="submit"
+                                class="btn btn-success btn-flat btn-sm float-sm-right">GENERAR</button>
+                        </div>
+                    </div>
+
                 </div>
-                <div class="form-group">
-                    <label for="cantidad">Valor de la variable "a"</label>
-                    <input type="number" class="form-control" name="a" id="a" placeholder="Ingrese un entero >= 0">
-                </div>
-                <div class="form-group">
-                    <label for="cantidad">Valor de la variable "c"</label>
-                    <input type="number" class="form-control" name="c" id="c" placeholder="Ingrese un entero >= 0">
-                </div>
-                <div class="form-group">
-                    <label for="cantidad">Valor de la variable "m"</label>
-                    <input type="number" class="form-control" name="m" id="m"
-                        placeholder="Ingrese el mayor entero primo, que sea menor a 127 (113)">
-                </div>
-                <div class="form-group">
-                    <label for="semillas">Semillas</label>
-                    <input type="text" class="form-control" id="semillas" name="semillas"
-                        placeholder="Ingrese las semillas separadas por una coma (p.ej: 45,89,74)" pattern="[0-9 _,]*">
-                </div>
-                @csrf
-                <div align="right">
-                    <button type="submit" class="btn  btn-success  btn-flat btn-sm">GENERAR</button>
-                </div>
-            </form>
+            </div>
+            <div class="card-footer"> <strong>AYUDA</strong> <br>
+                V[i+1] = ((a * V[i] + c * V[i-k]) mod m) <br>
+                a = multiplicador (a>=0) <br>
+                c = constante aditiva (c>=0) <br>
+                m = p*e -> p=2(computadora binaria), e=64(arq 64bits) -> m=127 (m>V[i]) (m>a) (m>0) <br>
+                k = seran las cantidad de seeds cargadas por el usuario <br>
+            </div>
         </div>
-        <div class="card-footer"> <strong>AYUDA</strong> <br>
-            V[i+1] = ((a * V[i] + c * V[i-k]) mod m) <br>
-            a = multiplicador (a>=0) <br>
-            c = constante aditiva (c>=0) <br>
-            m = p*e -> p=2(computadora binaria), e=64(arq 64bits) -> m=127 (m>V[i]) (m>a) (m>0) <br>
-            k = seran las cantidad de seeds cargadas por el usuario <br>
-        </div>
-    </div>
+    </form>
+
 </body>
 
+@endsection
+
+@section('after-scripts')
+<script type="text/javascript">
+    $(document).ready(function() {
+
+    $("#add_row").click(function(e) {
+        e.preventDefault();
+        //new row
+        $("#marcas_table").append(
+            '<tr>\
+                <td>\
+                    <input type="text" name="etiqueta[]" class="form-control" required placeholder="Ingrese una etiqueta" />\
+                </td>\
+                <td>\
+                    <input type="number" step="0.0001" min="0.0001" max="1" name="probabilidad[]" class="form-control" required placeholder="Ingrese el valor de probabilidad" />\
+                </td>\
+                <td><button class="delete_row pull-right btn btn-danger"><i class="la la-remove"></i></button></td>\
+            </tr>'
+        );
+    });
+
+    $("#marcas_table").on("click", ".delete_row", function() {
+        $(this).closest("tr").remove();
+    });
+
+});
+</script>
 @endsection

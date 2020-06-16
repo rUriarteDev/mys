@@ -14,7 +14,7 @@ use Illuminate\Support\Facades\Route;
 */
 
 Route::get('/', function () {
-    return view('welcome');
-});
+    return view('inicio');
+})->name('inicio');
 Route::get('/congruencia/fundamental', 'CongruenciaFundamental@formularioCargaCF')->name('formularioCargaCF');
 Route::post('/congruencia/fundamental/calcular', 'CongruenciaFundamental@formularioResultados')->name('formularioResultados');
