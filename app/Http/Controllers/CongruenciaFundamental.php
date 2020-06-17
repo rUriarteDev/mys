@@ -154,7 +154,7 @@ class CongruenciaFundamental extends Controller
             $aux4->put('probabilidad', $probabilidades->get($i));
             $aux4->put('min', $rangomin->get($i));
             $aux4->put('max', $rangomax->get($i));
-            $aux4->put('fespMC', $aleatorios01->count()*(floatval($probabilidades->get($i))));
+            $aux4->put('fespMC', $aleatorios01->count() * (floatval($probabilidades->get($i))));
             $marcasClase->push($aux4);
         }
 
@@ -203,6 +203,50 @@ class CongruenciaFundamental extends Controller
         return array($marcasClase, $numerosAjustados0100, $varAleatorias, $marcasVA);
     }
 
+    public function hidrologia(Collection $varAleatorias, Request $request)
+    {
+        $caudalh = intval($request->caudal_habitual);
+        $caudalm = intval($request->caudal_minimo);
+        $consumop = intval($request->consumo_persona);
+
+        //calculo el caudal del dia
+        $aux = $caudalh;
+        $caudales = collect();
+        foreach ($varAleatorias as $i => $va) {
+            $aux += $va;
+            $caudales->push($aux);
+        }
+
+        //verifico si el caudal del dia cae por debajo del minimo establecido
+        $alerta = collect();
+        foreach ($caudales as $i => $caudal) {
+            if ($caudal < $caudalm) {
+                $aux2 = true;
+            } else {
+                $aux2 = false;
+            }
+            $alerta->push($aux2);
+        }
+
+        //calculo cuantos litros de agua tengo segun el caudal del dia
+        //1m3/s = 1000lt/s
+        //1m3/s = 86.400.0000lt/dia
+        $litros_dia = collect();
+        foreach ($caudales as $i => $caudal) {
+            $aux3 = $caudal * 86400000;
+            $litros_dia->push($aux3);
+        }
+
+        //calculo a cuantas personas puedo abastecer con esa cantidad de litros
+        $personas_dia = collect();
+        foreach ($litros_dia as $i => $ld) {
+            $aux4 = $ld / $consumop;
+            $personas_dia->push($aux4);
+        }
+
+        return array($caudales, $alerta, $litros_dia, $personas_dia);
+    }
+
     public function formularioResultados(Request $request)
     {
         $probabilidad = $request->probabilidad;
@@ -211,7 +255,7 @@ class CongruenciaFundamental extends Controller
             Alert::error('Debe ingresar al menos una marca de clase')->flash();
             return Redirect::back()->withInput($request->input());
         }
-        $aux=array_sum($probabilidad);
+        $aux = array_sum($probabilidad);
         if ($aux != 1) {
             Alert::error('La suma de las probabilidades debe ser igual a 1 o 100%')->flash();
             return Redirect::back()->withInput($request->input());
@@ -219,8 +263,9 @@ class CongruenciaFundamental extends Controller
 
         list($aleatorios01, $cantidad, $m) = $this->calcularCF($request);
         list($fobsNA, $chi2) = $this->testAleatoriedad($aleatorios01, $cantidad, $m);
-        list($marcasClase, $numerosAjustados0100, $varAleatorias, $marcasVA) = 
-            $this->calcularClases($request, $aleatorios01);
+        list($marcasClase, $numerosAjustados0100, $varAleatorias, $marcasVA) =  $this->calcularClases($request, $aleatorios01);
+        list($caudales, $alerta, $litros_dia, $personas_dia) = $this->hidrologia($varAleatorias, $request);
+
 
         $graficoFobsNA = new UserChart;
         $graficoFobsNA->labels($fobsNA->keys());
@@ -230,6 +275,11 @@ class CongruenciaFundamental extends Controller
         $graficoMC->labels($marcasClase->pluck('etiqueta'));
         $graficoMC->dataset('Frecuencia esperada MC', 'line', $marcasClase->pluck('fespMC'))->color('black');
         $graficoMC->dataset('Frecuencia observada MC', 'line', $marcasClase->pluck('fobsMC'))->color('red');
+
+        $graficoHidrologia = new UserChart;
+        $graficoHidrologia->labels($caudales->keys());
+        $graficoHidrologia->dataset('Caudal diario', 'line', $caudales->values())->color('red');
+        // $graficoHidrologia->dataset('Caudal minimo', 'line', intval($request->caudal_minimo))->color('black');
 
         return view(
             'resultadoAleatorioTest',
@@ -241,7 +291,13 @@ class CongruenciaFundamental extends Controller
                 'marcasClase' => $marcasClase,
                 'numerosAjustados0100' => $numerosAjustados0100,
                 'varAleatorias' => $varAleatorias,
-                'marcasVA' => $marcasVA
+                'marcasVA' => $marcasVA,
+
+                'graficoHidrologia' => $graficoHidrologia,
+                'caudales' => $caudales,
+                'alerta' => $alerta,
+                'litrosDia' => $litros_dia,
+                'personasDia' => $personas_dia
             ]
         );
     }

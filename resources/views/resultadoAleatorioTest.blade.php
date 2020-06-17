@@ -38,23 +38,22 @@
                         <tr>
                             <th scope="col">Etiqueta</th>
                             <th scope="col">Probabilidad cargada</th>
-                            <th scope="col">Valor Minimo (<=) Rango</th> 
-                            <th scope="col">Valor Maximo (<) Rango</th> 
-                            <th scope="col">Frecuencia Esperada</th>
+                            <th scope="col">Valor Minimo (<=) Rango</th> <th scope="col">Valor Maximo (<) Rango</th> <th
+                                        scope="col">Frecuencia Esperada</th>
                             <th scope="col">Frecuencia Observada</th>
                         </tr>
                     </thead>
                     <tbody>
                         @foreach ($marcasClase as $marcaClase)
-                            <tr>
-                                <td>{{$marcaClase->get('etiqueta')}}</td>
-                                <td>{{$marcaClase->get('probabilidad')}}</td>
-                                <td>{{$marcaClase->get('min')}}</td>
-                                <td>{{$marcaClase->get('max')}}</td>
-                                <td>{{$marcaClase->get('fespMC')}}</td>
-                                <td>{{$marcaClase->get('fobsMC')}}</td>
+                        <tr>
+                            <td>{{$marcaClase->get('etiqueta')}}</td>
+                            <td>{{$marcaClase->get('probabilidad')}}</td>
+                            <td>{{$marcaClase->get('min')}}</td>
+                            <td>{{$marcaClase->get('max')}}</td>
+                            <td>{{$marcaClase->get('fespMC')}}</td>
+                            <td>{{$marcaClase->get('fobsMC')}}</td>
 
-                            </tr>
+                        </tr>
                         @endforeach
                     </tbody>
                 </table>
@@ -68,6 +67,15 @@
         </div>
         <div class="card-body">
             {!! $graficoMC->container() !!}
+        </div>
+    </div>
+
+    <div class="card border-primary mb-3 mx-auto" style="width: 95%">
+        <div class="card-header">
+            Grafico de caudal diario
+        </div>
+        <div class="card-body">
+            {!! $graficoHidrologia->container() !!}
         </div>
     </div>
 
@@ -85,11 +93,15 @@
                 <table class="table table-sm">
                     <thead>
                         <tr>
-                            <th scope="col">Posicion</th>
+                            <th scope="col">Dia</th>
                             <th scope="col">Numero Aleatorio</th>
                             <th scope="col">Numero Ajustado (0-100)</th>
                             <th scope="col">Variable Aleatoria</th>
                             <th scope="col">Marca de Clase Var. Aleatoria</th>
+                            <th scope="col">Caudal Dia</th>
+                            <th scope="col">Alerta</th>
+                            <th scope="col">Litros Dia</th>
+                            <th scope="col">Provision personas</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -100,6 +112,16 @@
                                 <td>{{$numerosAjustados0100->get($i)}}</td>
                                 <td>{{$varAleatorias->get($i)}}</td>
                                 <td>{{$marcasVA->get($i)}}</td>
+                                <td>{{$caudales->get($i)}}</td>
+                                <td>@if ($alerta->get($i)==true)
+                                    <i class="nav-icon la la-exclamation-triangle" style="color:red"></i>
+                                    @else
+                                    <i class="nav-icon la la-check-circle" style="color:green"></i>
+                                    @endif 
+                                </td>
+                                <td>{{$litrosDia->get($i)}}</td>
+                                <td>{{$personasDia->get($i)}}</td>
+
                             </tr>
                             @endfor
                     </tbody>
@@ -114,6 +136,7 @@
 
 {!! $graficoFobsNA->script() !!}
 {!! $graficoMC->script() !!}
+{!! $graficoHidrologia->script() !!}
 
 
 @endsection

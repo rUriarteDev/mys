@@ -15,79 +15,9 @@
         <div class="card border-primary mb-3 mx-auto" style="width: 65%">
 
             <div class="card-header">
-                <button class="btn btn-primary" type="button" data-toggle="collapse" data-target="#collapseMarcas"
-                    aria-expanded="false" aria-controls="collapseMarcas">
-                    MARCAS DE CLASE
-                </button>
-            </div>
-
-            <div class="collapse" id="collapseMarcas">
-                <div class="card-body">
-                    <div class="container">
-                        <div class="row">
-                            <div class="col-sm">
-                                <label for="minimo">Valor minimo para el calculo de marcas de clases.<span
-                                        style="color: red">*</span></label>
-                                <input type="number" class="form-control" id="minimo" name="minimo" step="0.1"
-                                    placeholder="Ingrese el valor minimo para el calculo de marcas de clases."
-                                    value="{{old('minimo')}}">
-                            </div>
-                            <div class="col-sm">
-                                <label for="maximo">Valor maximo para el calculo de marcas de clases.<span
-                                        style="color: red">*</span></label>
-                                <input type="number" class="form-control" id="maximo" name="maximo" step="0.1"
-                                    placeholder="Ingrese el valor maximo para el calculo de marcas de clases."
-                                    value="{{old('maximo')}}">
-                            </div>
-                        </div>
-                    </div>
-                    <br>
-                    <div class="table-responsive">
-                        <table class="table" id="marcas_table">
-                            <thead>
-                                <tr>
-                                    <th>Etiqueta <span style="color: red">*</span></th>
-                                    <th>Probabilidad <span style="color: red">*</span></th>
-                                    <th>Accion</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @if (old('etiqueta'))
-                                @for( $i=0; $i < count(old('etiqueta')); $i++) <tr>
-                                    <td>
-                                        <input type="text" name="etiqueta[]" class="form-control" required
-                                            placeholder="Ingrese una etiqueta" value="{{old('etiqueta.'.$i)}}">
-                                    </td>
-                                    <td>
-                                        <input type="number" step="0.0001" min="0.0001" max="1" name="probabilidad[]"
-                                            class="form-control" required placeholder="Ingrese el valor de probabilidad"
-                                            value="{{old('probabilidad.'.$i)}}">
-                                    </td>
-                                    <td><button class="delete_row pull-right btn btn-danger"><i
-                                                class="la la-remove"></i></button></td>
-                                    </tr>
-                                    @endfor
-                                    @endif
-                            </tbody>
-                        </table>
-                    </div>
-                    <br>
-                    <div class="row">
-                        <div class="col-sm">
-                            <button id="add_row" class="float-sm-left btn btn-default ">+ Agregar Marca Clase</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-        </div>
-
-        <div class="card border-primary mb-3 mx-auto" style="width: 65%">
-
-            <div class="card-header">
                 <button class="btn btn-primary" type="button" data-toggle="collapse" data-target="#collapseCF"
                     aria-expanded="false" aria-controls="collapseCF">
-                    CONGRUENCIA FUNDAMENTAL
+                    N° ALEATORIOS (CONG.FUND.)
                 </button>
             </div>
             <div class="collapse" id="collapseCF">
@@ -129,14 +59,6 @@
                             </div>
                         </div>
                     </div>
-                    <br>
-                    <div class="row">
-                        <div class="col-sm">
-                            <button type="submit"
-                                class="btn btn-success btn-flat btn-sm float-sm-right">GENERAR</button>
-                        </div>
-                    </div>
-
                 </div>
             </div>
             <div class="card-footer"> <strong>AYUDA</strong> <br>
@@ -147,6 +69,131 @@
                 k = seran las cantidad de seeds cargadas por el usuario <br>
             </div>
         </div>
+
+        <div class="card border-primary mb-3 mx-auto" style="width: 65%">
+            <div class="card-header">
+                <button class="btn btn-primary" type="button" data-toggle="collapse" data-target="#collapseMarcas"
+                    aria-expanded="false" aria-controls="collapseMarcas">
+                    MARCAS DE CLASE
+                </button>
+            </div>
+
+            <div class="collapse" id="collapseMarcas">
+                <div class="card-body">
+                    <div class="container">
+                        <div class="row">
+                            <div class="col-sm">
+                                <label for="minimo">Valor minimo del rango para las variables aleatorias<span
+                                        style="color: red">*</span></label>
+                                <input type="number" class="form-control" id="minimo" name="minimo" step="0.1" required
+                                    placeholder="Ingrese el valor minimo del rango para las variables aleatorias."
+                                    value="{{old('minimo')}}">
+                            </div>
+                            <div class="col-sm">
+                                <label for="maximo">Valor maximo del rango para las variables aleatorias<span
+                                        style="color: red">*</span></label>
+                                <input type="number" class="form-control" id="maximo" name="maximo" step="0.1" required
+                                    placeholder="Ingrese el valor maximo del rango para las variables aleatorias."
+                                    value="{{old('maximo')}}">
+                            </div>
+                        </div>
+                        <br>
+                        <div class="row">
+                            <div class="col-sm">
+                                <div class="table-responsive">
+                                    <table class="table" id="marcas_table">
+                                        <thead>
+                                            <tr>
+                                                <th>Etiqueta <span style="color: red">*</span></th>
+                                                <th>Probabilidad <span style="color: red">*</span></th>
+                                                <th>Accion</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @if (old('etiqueta'))
+                                            @for( $i=0; $i < count(old('etiqueta')); $i++) <tr>
+                                                <td>
+                                                    <input type="text" name="etiqueta[]" class="form-control" required
+                                                        placeholder="Ingrese una etiqueta"
+                                                        value="{{old('etiqueta.'.$i)}}">
+                                                </td>
+                                                <td>
+                                                    <input type="number" step="0.0001" min="0.0001" max="1"
+                                                        name="probabilidad[]" class="form-control" required
+                                                        placeholder="Ingrese el valor de probabilidad"
+                                                        value="{{old('probabilidad.'.$i)}}">
+                                                </td>
+                                                <td><button class="delete_row pull-right btn btn-danger"><i
+                                                            class="la la-remove"></i></button></td>
+                                                </tr>
+                                                @endfor
+                                                @endif
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                        <br>
+                        <div class="row">
+                            <div class="col-sm">
+                                <button id="add_row" class="float-sm-left btn btn-default ">+ Agregar Marca
+                                    Clase</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card border-primary mb-3 mx-auto" style="width: 65%">
+            <div class="card-header">
+                <button class="btn btn-primary" type="button" data-toggle="collapse" data-target="#collapseHidrologia"
+                    aria-expanded="false" aria-controls="collapseHidrologia">
+                    VAR. HIDROLOGIA
+                </button>
+            </div>
+
+            <div class="collapse" id="collapseHidrologia">
+                <div class="card-body">
+                    <div class="container">
+                        <div class="row">
+                            <div class="col-sm">
+                                <label for="caudal_habitual">Caudal constante habitual<span
+                                        style="color: red">*</span></label>
+                                <input type="number" class="form-control" id="caudal_habitual" name="caudal_habitual"
+                                    placeholder="Ingrese el valor del caudal habitual del curso de agua en m^3" required
+                                    value="{{old('caudal_habitual')}}">
+                            </div>
+                            <div class="col-sm">
+                                <label for="caudal_minimo">Caudal minimo de agua<span
+                                        style="color: red">*</span></label>
+                                <input type="number" class="form-control" id="caudal_minimo" name="caudal_minimo"
+                                    placeholder="Ingrese el valor del caudal minimo del curso de agua en m^3" required
+                                    value="{{old('caudal_minimo')}}">
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-sm">
+                                <label for="consumo_persona">Consumo minimo por persona<span
+                                        style="color: red">*</span></label>
+                                <input type="number" class="form-control" id="consumo_persona" name="consumo_persona"
+                                    placeholder="Ingrese el valor de consumo minimo diario de una persona en litros" required
+                                    value="{{old('consumo_persona')}}">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="mx-auto" style="width: 65%">
+            <div class="row">
+                <div class="col-sm">
+                    <button type="submit" class="btn btn-success btn-flat btn-sm float-sm-right">GENERAR</button>
+                </div>
+            </div>
+        </div>
+
     </form>
 
 </body>
