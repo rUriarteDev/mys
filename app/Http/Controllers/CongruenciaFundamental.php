@@ -218,14 +218,14 @@ class CongruenciaFundamental extends Controller
         }
 
         //verifico si el caudal del dia cae por debajo del minimo establecido
-        $alerta = collect();
+        $alertas = collect();
         foreach ($caudales as $i => $caudal) {
             if ($caudal < $caudalm) {
                 $aux2 = true;
             } else {
                 $aux2 = false;
             }
-            $alerta->push($aux2);
+            $alertas->push($aux2);
         }
 
         //calculo cuantos litros de agua tengo segun el caudal del dia
@@ -233,18 +233,71 @@ class CongruenciaFundamental extends Controller
         //1m3/s = 86.400.0000lt/dia
         $litros_dia = collect();
         foreach ($caudales as $i => $caudal) {
-            $aux3 = $caudal * 86400000;
-            $litros_dia->push($aux3);
+            $aux3 = intval(($caudal - $caudalm) * 86400000);
+            if ($aux3 < 0) {
+                $litros_dia->push(0);
+            } else {
+                $litros_dia->push($aux3);
+            }
         }
 
         //calculo a cuantas personas puedo abastecer con esa cantidad de litros
         $personas_dia = collect();
         foreach ($litros_dia as $i => $ld) {
-            $aux4 = $ld / $consumop;
+            $aux4 = intval($ld / $consumop);
             $personas_dia->push($aux4);
         }
 
-        return array($caudales, $alerta, $litros_dia, $personas_dia);
+        return array($caudales, $alertas, $litros_dia, $personas_dia);
+    }
+
+    public function conclusiones(
+        Collection $varAleatorias,
+        Collection $caudales,
+        Collection $alertas,
+        Collection $litros_dia,
+        Collection $personas_dia
+    ) {
+
+        //calculo el valor minimo, maximo y promedio de variacion de mis variables aleatorias
+        $minVA = $varAleatorias->min();
+        $maxVA = $varAleatorias->max();
+        $promVA = $varAleatorias->average();
+
+        //calculo el valor minimo, maximo y promedio de variacion de mis caudales
+        $minCaudal = $caudales->min();
+        $maxCaudal = $caudales->max();
+        $promCaudal = $caudales->average();
+
+        //calculo el cuantas alertas por superar el caudal minimo tuve
+        $cantAlertas = $alertas->filter(function ($value, $key) {
+            return $value == true;
+        })->count();
+
+        //calculo el valor minimo, maximo y promedio de variacion de los litros generados por dia
+        //para el minimo y el promedio no tomo en cuenta los dias sin produccion
+        $minLitrosDia = $litros_dia->filter(function ($value, $key) {
+            return $value > 0;
+        })->min();
+        $maxLitrosDia = $litros_dia->max();
+        $promLitrosDia = $litros_dia->filter(function ($value, $key) {
+            return $value > 0;
+        })->average();
+
+        //calculo el valor minimo, maximo y promedio de variacion de la provision a personas
+        //para el minimo y el promedio no tomo en cuenta los dias sin produccion
+        $minPersonasDia = $personas_dia->filter(function ($value, $key) {
+            return $value > 0;
+        })->min();
+        $maxPersonasDia = $personas_dia->max();
+        $promPersonasDia = $personas_dia->filter(function ($value, $key) {
+            return $value > 0;
+        })->average();
+
+        return array(
+            $minVA, $maxVA, $promVA, $minCaudal, $maxCaudal, $promCaudal, $cantAlertas, $minLitrosDia,
+            $maxLitrosDia, $promLitrosDia, $minPersonasDia, $maxPersonasDia, $promPersonasDia
+        );
     }
 
     public function formularioResultados(Request $request)
@@ -264,8 +317,18 @@ class CongruenciaFundamental extends Controller
         list($aleatorios01, $cantidad, $m) = $this->calcularCF($request);
         list($fobsNA, $chi2) = $this->testAleatoriedad($aleatorios01, $cantidad, $m);
         list($marcasClase, $numerosAjustados0100, $varAleatorias, $marcasVA) =  $this->calcularClases($request, $aleatorios01);
-        list($caudales, $alerta, $litros_dia, $personas_dia) = $this->hidrologia($varAleatorias, $request);
-
+        list($caudales, $alertas, $litros_dia, $personas_dia) = $this->hidrologia($varAleatorias, $request);
+        list(
+            $minVA, $maxVA, $promVA, $minCaudal, $maxCaudal, $promCaudal, $cantAlertas, $minLitrosDia,
+            $maxLitrosDia, $promLitrosDia, $minPersonasDia, $maxPersonasDia, $promPersonasDia
+        ) =
+            $this->conclusiones(
+                $varAleatorias,
+                $caudales,
+                $alertas,
+                $litros_dia,
+                $personas_dia
+            );
 
         $graficoFobsNA = new UserChart;
         $graficoFobsNA->labels($fobsNA->keys());
@@ -285,19 +348,35 @@ class CongruenciaFundamental extends Controller
             'resultadoAleatorioTest',
             [
                 'aleatorios01' => $aleatorios01,
-                'chi2' => $chi2,
                 'graficoFobsNA' => $graficoFobsNA,
-                'graficoMC' => $graficoMC,
+
+                'chi2' => $chi2,
+
                 'marcasClase' => $marcasClase,
+                'graficoMC' => $graficoMC,
+
                 'numerosAjustados0100' => $numerosAjustados0100,
                 'varAleatorias' => $varAleatorias,
                 'marcasVA' => $marcasVA,
-
                 'graficoHidrologia' => $graficoHidrologia,
                 'caudales' => $caudales,
-                'alerta' => $alerta,
+                'alerta' => $alertas,
                 'litrosDia' => $litros_dia,
-                'personasDia' => $personas_dia
+                'personasDia' => $personas_dia,
+
+                'minVA' => $minVA,
+                'maxVA' => $maxVA,
+                'promVA' => $promVA,
+                'minCaudal' => $minCaudal,
+                'maxCaudal' => $maxCaudal,
+                'promCaudal' => $promCaudal,
+                'cantAlertas' => $cantAlertas,
+                'minLitrosDia' => $minLitrosDia,
+                'maxLitrosDia' => $maxLitrosDia,
+                'promLitrosDia' => $promLitrosDia,
+                'minPersonasDia' => $minPersonasDia,
+                'maxPersonasDia' => $maxPersonasDia,
+                'promPersonasDia' => $promPersonasDia
             ]
         );
     }

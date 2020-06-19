@@ -193,10 +193,11 @@
                 </div>
             </div>
         </div>
-
     </form>
+    <br>
 
 </body>
+{{-- en el resumen conocer los picos, alertas, promedio litros y cantidad de gente. --}}
 
 @endsection
 

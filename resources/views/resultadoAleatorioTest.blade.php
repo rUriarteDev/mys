@@ -2,6 +2,16 @@
 
 @section('content')
 
+<style>
+    .ico {
+        padding: 0;
+    }
+    .tabTitAjust{
+        white-space: nowrap; 
+        width: 1%;
+    }
+</style>
+
 <div class="container-fluid">
 
     <div class="card border-primary mb-3 mx-auto" style="width: 95%">
@@ -38,8 +48,9 @@
                         <tr>
                             <th scope="col">Etiqueta</th>
                             <th scope="col">Probabilidad cargada</th>
-                            <th scope="col">Valor Minimo (<=) Rango</th> <th scope="col">Valor Maximo (<) Rango</th> <th
-                                        scope="col">Frecuencia Esperada</th>
+                            <th scope="col">Valor Minimo (<=) Rango</th> 
+                            <th scope="col">Valor Maximo (<) Rango</th> 
+                            <th scope="col">Frecuencia Esperada</th>
                             <th scope="col">Frecuencia Observada</th>
                         </tr>
                     </thead>
@@ -90,37 +101,191 @@
         </div>
         <div class="collapse" id="collapseTabla2">
             <div class="card-body">
-                <table class="table table-sm">
+                <table class="table table-sm table-bordered">
                     <thead>
                         <tr>
-                            <th scope="col">Dia</th>
-                            <th scope="col">Numero Aleatorio</th>
-                            <th scope="col">Numero Ajustado (0-100)</th>
-                            <th scope="col">Variable Aleatoria</th>
-                            <th scope="col">Marca de Clase Var. Aleatoria</th>
-                            <th scope="col">Caudal Dia</th>
-                            <th scope="col">Alerta</th>
-                            <th scope="col">Litros Dia</th>
-                            <th scope="col">Provision personas</th>
+                            <th></th>
+                            <th></th>
+                            <th></th>
+                            <th scope="col" style="text-align: center">
+                                <div class="card-group">
+                                    <div class="card">
+                                        <div class="card-header ico">
+                                            <i class="nav-icon la la-arrow-up" style="color:green;font-size:16px"
+                                                title="Valor maximo"></i>
+                                        </div>
+                                        <div class="card-body ico">
+                                            <p class="card-text" style="color:green;font-size:16px">
+                                                {{number_format($maxVA,2,',','.')}}</p>
+                                        </div>
+                                    </div>
+                                    <div class="card">
+                                        <div class="card-header ico">
+                                            <i class="nav-icon la la-arrow-down" style="color:red; font-size:16px"
+                                                title="Valor minimo"></i> </div>
+                                        <div class="card-body ico">
+                                            <p class="card-text" style="color:red; font-size:16px">
+                                                {{number_format($minVA,2,',','.')}}</p>
+                                        </div>
+                                    </div>
+                                    <div class="card">
+                                        <div class="card-header ico">
+                                            <i class="nav-icon la la-chart-bar" style="color:blue;font-size:16px"
+                                                title="Promedio"></i> </div>
+                                        <div class="card-body ico">
+                                            <p class="card-text" style="color:blue;font-size:16px">
+                                                {{number_format($promVA,2,',','.')}}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </th>
+                            <th></th>
+                            <th scope="col" style="text-align: center">
+                                <div class="card-group">
+                                    <div class="card ">
+                                        <div class="card-header ico">
+                                            <i class="nav-icon la la-arrow-up" style="color:green;font-size:16px"
+                                                title="Valor maximo"></i>
+                                        </div>
+                                        <div class="card-body ico">
+                                            <p class="card-text" style="color:green;font-size:16px">
+                                                {{number_format($maxCaudal,2,',','.')}}</p>
+                                        </div>
+                                    </div>
+                                    <div class="card ">
+                                        <div class="card-header ico">
+                                            <i class="nav-icon la la-arrow-down" style="color:red; font-size:16px"
+                                                title="Valor minimo"></i> </div>
+                                        <div class="card-body ico">
+                                            <p class="card-text" style="color:red; font-size:16px">
+                                                {{number_format($minCaudal,2,',','.')}}</p>
+                                        </div>
+                                    </div>
+                                    <div class="card ">
+                                        <div class="card-header ico">
+                                            <i class="nav-icon la la-chart-bar" style="color:blue;font-size:16px"
+                                                title="Promedio"></i> </div>
+                                        <div class="card-body ico">
+                                            <p class="card-text" style="color:blue;font-size:16px">
+                                                {{number_format($promCaudal,2,',','.')}}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </th>
+                            <th scope="col" style="text-align:center">
+                                <div class="card-group">
+                                    <div class="card">
+                                        <div class="card-header ico">
+                                            <i class="nav-icon la la-exclamation-triangle"
+                                                style="color:red;font-size:16px" title="Cantidad de alertas"></i> </div>
+                                        <div class="card-body ico">
+                                            <p class="card-text" style="color:red;font-size:16px">{{$cantAlertas}}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </th>
+                            <th scope="col" style="text-align: center">
+                                <div class="card-group">
+                                    <div class="card ">
+                                        <div class="card-header ico">
+                                            <i class="nav-icon la la-arrow-up" style="color:green;font-size:16px"
+                                                title="Valor maximo"></i>
+                                        </div>
+                                        <div class="card-body ico">
+                                            <p class="card-text" style="color:green;font-size:16px">
+                                                {{number_format($maxLitrosDia,0,',','.')}}
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <div class="card ">
+                                        <div class="card-header ico">
+                                            <i class="nav-icon la la-arrow-down" style="color:red; font-size:16px"
+                                                title="Valor minimo"></i> </div>
+                                        <div class="card-body ico">
+                                            <p class="card-text" style="color:red; font-size:16px">
+                                                {{number_format($minLitrosDia,0,',','.')}}</p>
+                                        </div>
+                                    </div>
+                                    <div class="card ">
+                                        <div class="card-header ico">
+                                            <i class="nav-icon la la-chart-bar" style="color:blue;font-size:16px"
+                                                title="Promedio"></i> </div>
+                                        <div class="card-body ico">
+                                            <p class="card-text" style="color:blue;font-size:16px">
+                                                {{number_format($promLitrosDia,0,',','.')}}
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </th>
+                            <th scope="col" style="text-align: center">
+                                <div class="card-group">
+                                    <div class="card ">
+                                        <div class="card-header ico">
+                                            <i class="nav-icon la la-arrow-up" style="color:green;font-size:16px"
+                                                title="Valor maximo"></i>
+                                        </div>
+                                        <div class="card-body ico">
+                                            <p class="card-text" style="color:green;font-size:16px">
+                                                {{number_format($maxPersonasDia,0,',','.')}}
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <div class="card ">
+                                        <div class="card-header ico">
+                                            <i class="nav-icon la la-arrow-down" style="color:red; font-size:16px"
+                                                title="Valor minimo"></i> </div>
+                                        <div class="card-body ico">
+                                            <p class="card-text" style="color:red; font-size:16px">
+                                                {{number_format($minPersonasDia,0,',','.')}}
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <div class="card ">
+                                        <div class="card-header ico">
+                                            <i class="nav-icon la la-chart-bar" style="color:blue;font-size:16px"
+                                                title="Promedio"></i> </div>
+                                        <div class="card-body ico">
+                                            <p class="card-text" style="color:blue;font-size:16px">
+                                                {{number_format($promPersonasDia,0,',','.')}}
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </th>
+                        </tr>
+                    </thead>
+                    <thead>
+                        <tr>
+                            <th scope="col" style="text-align:center">Dia</th>
+                            <th class="tabTitAjust" scope="col" style="text-align:center">Numero Aleatorio</th>
+                            <th class="tabTitAjust" scope="col" style="text-align:center;">Nº Ajustado (0-100)</th>
+                            <th scope="col" style="text-align:center">Variable Aleatoria</th>
+                            <th class="tabTitAjust" scope="col" style="text-align:center">Marca de Clase</th>
+                            <th scope="col" style="text-align:center">Caudal Dia</th>
+                            <th scope="col" style="text-align:center">Alerta</th>
+                            <th scope="col" style="text-align:center">Litros Dia</th>
+                            <th scope="col" style="text-align:center">Provision personas</th>
                         </tr>
                     </thead>
                     <tbody>
                         @for ($i = 0; $i < $aleatorios01->count(); $i++)
                             <tr>
-                                <td>{{$i}}</td>
-                                <td>{{$aleatorios01->get($i)}}</td>
-                                <td>{{$numerosAjustados0100->get($i)}}</td>
-                                <td>{{$varAleatorias->get($i)}}</td>
-                                <td>{{$marcasVA->get($i)}}</td>
-                                <td>{{$caudales->get($i)}}</td>
-                                <td>@if ($alerta->get($i)==true)
+                                <td style="text-align:center">{{$i}}</td>
+                                <td style="text-align:center">{{number_format($aleatorios01->get($i),2,',','.')}}</td>
+                                <td style="text-align:center">
+                                    {{number_format($numerosAjustados0100->get($i),2,',','.')}}</td>
+                                <td style="text-align:center">{{number_format($varAleatorias->get($i),2,',','.')}}</td>
+                                <td style="text-align:center">{{$marcasVA->get($i)}}</td>
+                                <td style="text-align:center">{{number_format($caudales->get($i),2,',','.')}}</td>
+                                <td style="text-align:center">@if ($alerta->get($i)==true)
                                     <i class="nav-icon la la-exclamation-triangle" style="color:red"></i>
                                     @else
                                     <i class="nav-icon la la-check-circle" style="color:green"></i>
-                                    @endif 
+                                    @endif
                                 </td>
-                                <td>{{$litrosDia->get($i)}}</td>
-                                <td>{{$personasDia->get($i)}}</td>
+                                <td style="text-align:center">{{$litrosDia->get($i)}}</td>
+                                <td style="text-align:center">{{$personasDia->get($i)}}</td>
 
                             </tr>
                             @endfor
